@@ -29,15 +29,9 @@ async function tokenValid(request, env) {
 }
 async function readProducts(env) {
   const raw = await env.PRODUCTS.get("catalog");
-  if (raw) { try { return JSON.parse(raw); } catch {} }
-  return [
-    {id:1,n:"تمثال فرعوني ديكوري",c:"تماثيل",p:850,e:"𓁟",d:"قطعة ديكور مستوحاة من الفن المصري القديم.",image:""},
-    {id:2,n:"قناع ملكي ذهبي",c:"أقنعة ملكية",p:1200,e:"𓂀",d:"قناع للعرض والديكور بلمسة ذهبية.",image:""},
-    {id:3,n:"مجسم هرم",c:"أهرامات وديكورات",p:450,e:"𓉴",d:"مجسم أنيق مناسب للمكتب أو المنزل.",image:""},
-    {id:4,n:"لوحة بردي فنية",c:"برديات ولوحات",p:300,e:"𓆃",d:"لوحة زخرفية مستوحاة من الرموز المصرية.",image:""},
-    {id:5,n:"تمثال أبو الهول",c:"تماثيل",p:950,e:"𓃩",d:"مجسم ديكوري بطابع أثري مميز.",image:""},
-    {id:6,n:"صندوق هدايا فرعوني",c:"هدايا وتحف",p:550,e:"𓋹",d:"هدية بطابع مصري أصيل.",image:""}
-  ];
+  if (raw) { try { const saved=JSON.parse(raw); const demoNames=["تمثال فرعوني ديكوري","قناع ملكي ذهبي","مجسم هرم","لوحة بردي فنية","تمثال أبو الهول","صندوق هدايا فرعوني"]; return Array.isArray(saved)?saved.filter(p=>!demoNames.includes(p.n)):[]; } catch {} }
+  return [];
+
 }
 export default {
   async fetch(request, env) {
