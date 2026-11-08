@@ -52,7 +52,7 @@ export default {
       let products = await readProducts(env);
       if (request.method === "POST") {
         let p; try { p=await request.json(); } catch { return json({error:"بيانات غير صحيحة"},400,headers); }
-        if (!p.n || !p.c || !Number.isFinite(Number(p.p)) || Number(p.p)<0) return json({error:"أدخل الاسم والتصنيف والسعر بشكل صحيح"},400,headers);
+        if (!p.n || !Number.isFinite(Number(p.p)) || Number(p.p)<0) return json({error:"أدخل اسم المنتج والسعر بشكل صحيح"},400,headers);
         p={...p,id:Date.now(),p:Number(p.p),e:p.e||"𓂀",d:p.d||"",image:p.image||""};
         products.push(p); await env.PRODUCTS.put("catalog",JSON.stringify(products)); return json(p,201,headers);
       }
@@ -61,7 +61,7 @@ export default {
       if (request.method === "PUT") {
         if(index<0) return json({error:"المنتج غير موجود"},404,headers);
         let p; try { p=await request.json(); } catch { return json({error:"بيانات غير صحيحة"},400,headers); }
-        if (!p.n || !p.c || !Number.isFinite(Number(p.p)) || Number(p.p)<0) return json({error:"أدخل الاسم والتصنيف والسعر بشكل صحيح"},400,headers);
+        if (!p.n || !Number.isFinite(Number(p.p)) || Number(p.p)<0) return json({error:"أدخل اسم المنتج والسعر بشكل صحيح"},400,headers);
         products[index]={...products[index],...p,id,p:Number(p.p)}; await env.PRODUCTS.put("catalog",JSON.stringify(products)); return json(products[index],200,headers);
       }
       if (request.method === "DELETE") {
