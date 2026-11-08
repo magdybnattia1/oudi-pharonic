@@ -1,9 +1,10 @@
-name = "oudi-pharonic-api"
+name = "oudi-pharonic"
 main = "worker/index.js"
 compatibility_date = "2026-11-08"
 
 [[kv_namespaces]]
 binding = "PRODUCTS"
+id = "0a72daa0679c4980b368e6fa8673659b"
 
 [secrets]
 required = ["ADMIN_PASSWORD", "SESSION_SECRET"]
