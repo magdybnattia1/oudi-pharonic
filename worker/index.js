@@ -47,12 +47,27 @@ export default {
       return json({token:payload+"."+await sign(payload,env.SESSION_SECRET)},200,headers);
     }
     if (url.pathname === "/api/visitors" && request.method === "GET") {
-      const count = Number(await env.PRODUCTS.get("visitor_count") || 0);
+      let count = 0, cursor;
+      do {
+        const page = await env.PRODUCTS.list({prefix:"visitor:", cursor, limit:1000});
+        count += page.keys.length;
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor);
       return json({count},200,headers);
     }
     if (url.pathname === "/api/visitors" && request.method === "POST") {
-      const count = Number(await env.PRODUCTS.get("visitor_count") || 0) + 1;
-      await env.PRODUCTS.put("visitor_count",String(count));
+      let body;
+      try { body = await request.json(); } catch { return json({error:"Invalid visitor"},400,headers); }
+      const id = String(body.id || "");
+      if (!/^[a-zA-Z0-9_-]{16,80}$/.test(id)) return json({error:"Invalid visitor"},400,headers);
+      const key = "visitor:" + id;
+      if (!(await env.PRODUCTS.get(key))) await env.PRODUCTS.put(key,"1");
+      let count = 0, cursor;
+      do {
+        const page = await env.PRODUCTS.list({prefix:"visitor:", cursor, limit:1000});
+        count += page.keys.length;
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor);
       return json({count},200,headers);
     }
     if (url.pathname === "/api/products" && request.method === "GET") return json(await readProducts(env),200,headers);
