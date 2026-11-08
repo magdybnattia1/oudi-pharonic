@@ -1,0 +1,9 @@
+name = "oudi-pharonic-api"
+main = "worker/index.js"
+compatibility_date = "2026-11-08"
+
+[[kv_namespaces]]
+binding = "PRODUCTS"
+
+[secrets]
+required = ["ADMIN_PASSWORD", "SESSION_SECRET"]
