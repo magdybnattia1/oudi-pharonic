@@ -46,6 +46,15 @@ export default {
       const payload = btoa(JSON.stringify({exp:Date.now()+8*60*60*1000,role:"admin"})).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
       return json({token:payload+"."+await sign(payload,env.SESSION_SECRET)},200,headers);
     }
+    if (url.pathname === "/api/visitors" && request.method === "GET") {
+      const count = Number(await env.PRODUCTS.get("visitor_count") || 0);
+      return json({count},200,headers);
+    }
+    if (url.pathname === "/api/visitors" && request.method === "POST") {
+      const count = Number(await env.PRODUCTS.get("visitor_count") || 0) + 1;
+      await env.PRODUCTS.put("visitor_count",String(count));
+      return json({count},200,headers);
+    }
     if (url.pathname === "/api/products" && request.method === "GET") return json(await readProducts(env),200,headers);
     if (url.pathname.startsWith("/api/products")) {
       if (!(await tokenValid(request,env))) return json({error:"غير مصرح"},401,headers);
