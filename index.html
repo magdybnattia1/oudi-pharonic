@@ -3,13 +3,20 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Oudi PHARONIC — معرض التحف والديكورات المستوحاة من الحضارة المصرية القديمة، صناعة حديثة.">
+<meta name="theme-color" content="#0c0b09">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Oudi PHARONIC">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon.svg">
 <title>Oudi PHARONIC | فن بروح مصر القديمة</title>
 <style>
 :root{--gold:#d6ad55;--gold2:#f4d98d;--bg:#0c0b09;--panel:#17140f;--muted:#b8ad98}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#302311 0,transparent 35%),var(--bg);color:#f8f1e4;font-family:Tahoma,Arial,sans-serif;line-height:1.7}
 header{padding:22px 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #49391e;position:sticky;top:0;background:#0c0b09ed;backdrop-filter:blur(12px);z-index:5}
 .logo{font-size:25px;font-weight:bold;letter-spacing:2px;color:var(--gold2)}.logo small{display:block;font-size:11px;letter-spacing:4px;color:#c8b58e;text-align:center}
-nav a{color:#e9dcc0;text-decoration:none;margin:0 12px;font-size:14px}
+nav a{color:#e9dcc0;text-decoration:none;margin:0 12px;font-size:14px}#installApp{padding:8px 12px;margin-inline-start:8px;font-size:12px}
 button,.btn{border:0;border-radius:7px;background:linear-gradient(135deg,var(--gold2),#b7842f);color:#171109;padding:11px 18px;font-weight:bold;cursor:pointer;text-decoration:none}
 .hero{padding:85px 8% 75px;text-align:center;background:linear-gradient(#09080699,#090806dd),repeating-linear-gradient(90deg,#6c50171a 0 1px,transparent 1px 70px)}
 .kicker{color:var(--gold);letter-spacing:3px;font-size:13px}.hero h1{font-size:clamp(35px,6vw,65px);line-height:1.2;margin:15px 0;color:var(--gold2)}.hero p{max-width:650px;margin:0 auto 25px;color:#d6cbb6}
@@ -25,7 +32,7 @@ button,.btn{border:0;border-radius:7px;background:linear-gradient(135deg,var(--g
 #adminStatus{color:var(--gold2);min-height:24px}
 </style></head>
 <body>
-<header><div class="logo">OUDI <span>PHARONIC</span><small>EGYPTIAN INSPIRED ART</small></div><nav><a href="#shop">المعرض</a><a href="#about">عن المعرض</a><a href="#cart">السلة 🛒 <b id="count">0</b></a></nav></header>
+<header><div class="logo">OUDI <span>PHARONIC</span><small>EGYPTIAN INSPIRED ART</small></div><nav><a href="#shop">المعرض</a><a href="#about">عن المعرض</a><a href="#cart">السلة 🛒 <b id="count">0</b></a><button id="installApp" hidden type="button">تثبيت التطبيق</button></nav></header>
 <section class="hero"><div class="kicker">روح الحضارة المصرية • لمسة عصرية</div><h1>حكاية من ذهب<br>تبدأ من هنا</h1><p>اكتشف قطع ديكور وهدايا مستوحاة من جمال الفن المصري القديم، مصنوعة حديثًا لتضيف لمسة ملكية إلى مكانك.</p><a class="btn" href="#shop">تصفح المنتجات</a></section>
 <main class="wrap" id="shop"><div class="section-title"><h2>معرض Oudi PHARONIC</h2><p>اختار القطع اللي تعجبك واجمعها في السلة واطلبها على واتساب</p></div>
 <div class="categories" id="filters"><button class="active" data-cat="الكل">الكل</button><button data-cat="تماثيل">تماثيل</button><button data-cat="أقنعة ملكية">أقنعة ملكية</button><button data-cat="أهرامات وديكورات">أهرامات وديكورات</button><button data-cat="برديات ولوحات">برديات ولوحات</button><button data-cat="هدايا وتحف">هدايا وتحف</button></div>
@@ -73,4 +80,11 @@ async function saveProduct(e){e.preventDefault();const id=document.getElementByI
 async function deleteProduct(id){if(!confirm("تأكيد حذف المنتج؟"))return;try{const r=await fetch(API_BASE+"/api/products/"+id,{method:"DELETE",headers:{"Authorization":"Bearer "+adminToken}});if(!r.ok)throw Error("تعذر الحذف");items=items.filter(x=>x.id!==id);render();showAdminProducts();drawCart();document.getElementById("adminStatus").textContent="تم حذف المنتج"}catch(e){document.getElementById("adminStatus").textContent=e.message}}
 document.getElementById("productForm").addEventListener("submit",saveProduct);
 render();drawCart();loadProducts();
+let deferredInstallPrompt=null;
+const installButton=document.getElementById("installApp");
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;installButton.hidden=false});
+installButton.addEventListener("click",async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installButton.hidden=true});
+window.addEventListener("appinstalled",()=>{installButton.hidden=true;deferredInstallPrompt=null});
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("PWA service worker:",err)))}
+
 </script></body></html>
