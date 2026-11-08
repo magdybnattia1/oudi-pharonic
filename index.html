@@ -53,7 +53,7 @@ nav a{color:#51432d}
 .cartline{border-bottom:1px solid #eee3d0;color:#40382d}
 .cartline button,.admin-actions .secondary{background:#8c672b;color:#fff}
 .empty{color:#817666}
-footer{border-top:1px solid #e8dcc5;color:#746b5d}
+footer{border-top:1px solid #e8dcc5;color:#746b5d}.visitor-counter{display:inline-block;margin-top:8px;padding:5px 13px;border:1px solid #e8dcc5;border-radius:20px;background:#fffaf0;color:#746044;font-size:12px}.visitor-counter strong{color:#946719;font-size:14px}
 .admin-area input,.admin-area select,.admin-area textarea{background:#fff;color:#28231b;border:1px solid #d9c79e}
 .admin-area label{color:#51432d}
 #adminStatus{color:#946719}
@@ -155,7 +155,8 @@ document.getElementById("pImageFile").addEventListener("change",async e=>{const 
 async function saveProduct(e){e.preventDefault();const id=document.getElementById("editId").value;let uploadedImage="";try{const file=document.getElementById("pImageFile").files[0];uploadedImage=file?await imageFileToDataURL(file):document.getElementById("pImage").value;if(!uploadedImage&&id){const old=items.find(x=>x.id===Number(id));uploadedImage=old?.image||""}}catch(err){document.getElementById("adminStatus").textContent=err.message;return}const p={n:document.getElementById("pName").value,p:Number(document.getElementById("pPrice").value),d:document.getElementById("pDesc").value,tag:document.getElementById("pTag").value.trim()||"قطعة مميزة",image:uploadedImage};try{const r=await fetch(API_BASE+"/api/products"+(id?"/"+id:""),{method:id?"PUT":"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+adminToken},body:JSON.stringify(p)});const d=await r.json();if(!r.ok)throw Error(d.error||"لم يتم الحفظ");if(id)items=items.map(x=>x.id===Number(id)?d:x);else items.push(d);resetProductForm();render();showAdminProducts();document.getElementById("adminStatus").textContent="تم حفظ المنتج"}catch(e){document.getElementById("adminStatus").textContent=e.message}}
 async function deleteProduct(id){if(!confirm("تأكيد حذف المنتج؟"))return;try{const r=await fetch(API_BASE+"/api/products/"+id,{method:"DELETE",headers:{"Authorization":"Bearer "+adminToken}});if(!r.ok)throw Error("تعذر الحذف");items=items.filter(x=>x.id!==id);render();showAdminProducts();drawCart();document.getElementById("adminStatus").textContent="تم حذف المنتج"}catch(e){document.getElementById("adminStatus").textContent=e.message}}
 document.getElementById("productForm").addEventListener("submit",saveProduct);
-render();drawCart();loadProducts();
+async function updateVisitorCounter(){const out=document.getElementById("visitorCount");try{const key="oudi_visitor_counted_v1";const isNew=!localStorage.getItem(key);const r=await fetch(API_BASE+"/api/visitors",{method:isNew?"POST":"GET"});if(!r.ok)throw Error("counter unavailable");const d=await r.json();if(isNew)localStorage.setItem(key,"1");out.textContent=Number(d.count||0).toLocaleString("en-US")}catch(e){out.textContent="—";console.warn("Visitor counter:",e)}}
+render();drawCart();loadProducts();updateVisitorCounter();
 let deferredInstallPrompt=null;
 const installButton=document.getElementById("installApp");
 window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();deferredInstallPrompt=event;installButton.hidden=false});
