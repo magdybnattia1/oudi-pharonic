@@ -1,0 +1,21 @@
+{
+  "name": "Oudi PHARONIC",
+  "short_name": "Oudi",
+  "description": "معرض Oudi PHARONIC للتحف والديكورات المستوحاة من الحضارة المصرية القديمة",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0b09",
+  "theme_color": "#0c0b09",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
