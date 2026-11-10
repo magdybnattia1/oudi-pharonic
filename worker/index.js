@@ -38,7 +38,21 @@ export default {
     const origin = request.headers.get("Origin") || "";
     const headers = cors(origin);
     const url = new URL(request.url);
-    const shareId = url.pathname.startsWith("/p/") ? Number(url.pathname.slice(3)) : NaN;
+    const mediaId = url.pathname.startsWith("/media/") ? Number(url.pathname.slice(7)) : NaN;
+    if (request.method === "GET" && Number.isSafeInteger(mediaId) && mediaId > 0) {
+      const product = (await readProducts(env)).find(p => Number(p.id) === mediaId);
+      if (!product || !product.image) return new Response("الصورة غير موجودة", {status:404});
+      const source = String(product.image);
+      const dataMatch = source.match(/^data:(image\\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/);
+      if (dataMatch) {
+        const binary = atob(dataMatch[2]);
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        return new Response(bytes, {headers:{"Content-Type":dataMatch[1],"Cache-Control":"public, max-age=86400","X-Content-Type-Options":"nosniff"}});
+      }
+      if (source.startsWith("https://") || source.startsWith("http://")) return Response.redirect(source,302);
+      return new Response("صيغة الصورة غير مدعومة", {status:415});
+    }
+        const shareId = url.pathname.startsWith("/p/") ? Number(url.pathname.slice(3)) : NaN;
     if (request.method === "GET" && Number.isSafeInteger(shareId) && shareId > 0) {
       const id = shareId;
       const product = (await readProducts(env)).find(p => Number(p.id) === id);
@@ -48,7 +62,7 @@ export default {
       const description = esc((product.d || "ديكور مستوحى من الحضارة المصرية القديمة") + " — السعر: " + Number(product.p).toLocaleString("en-US") + " EGP");
       const destination = "https://magdybnattia1.github.io/oudi-pharonic/?product=" + id + "#product-" + id;
       const rawImage = String(product.image || "");
-      const imageUrl = (rawImage.startsWith("https://") || rawImage.startsWith("http://")) ? rawImage : "https://magdybnattia1.github.io/oudi-pharonic/icon.svg";
+      const imageUrl = rawImage.startsWith("data:image/") ? "https://oudi-pharonic.mangalefi.workers.dev/media/"+id : ((rawImage.startsWith("https://") || rawImage.startsWith("http://")) ? rawImage : "https://magdybnattia1.github.io/oudi-pharonic/icon.svg");
       const page = "<!doctype html><html lang='ar' dir='rtl'><head><meta charset='utf-8'><title>"+title+"</title><meta name='description' content='"+description+"'><meta property='og:type' content='product'><meta property='og:title' content='"+title+"'><meta property='og:description' content='"+description+"'><meta property='og:url' content='https://oudi-pharonic.mangalefi.workers.dev/p/"+id+"'><meta property='og:image' content='"+esc(imageUrl)+"'><meta name='twitter:card' content='summary_large_image'><meta http-equiv='refresh' content='0;url="+destination+"'><script>location.replace("+JSON.stringify(destination)+")</script></head><body><a href='"+destination+"'>افتح المنتج</a></body></html>";
       return new Response(page,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"public, max-age=60"}});
     }
