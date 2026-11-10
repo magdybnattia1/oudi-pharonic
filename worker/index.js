@@ -37,9 +37,23 @@ export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
     const headers = cors(origin);
+    const url = new URL(request.url);
+    const shareMatch = url.pathname.match(/^\\/p\\/(\\d+)$/);
+    if (request.method === "GET" && shareMatch) {
+      const id = Number(shareMatch[1]);
+      const product = (await readProducts(env)).find(p => Number(p.id) === id);
+      if (!product) return new Response("المنتج غير موجود", {status:404});
+      const esc = value => String(value ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+      const title = esc(product.n + " | OUDI PHARONIC");
+      const description = esc((product.d || "ديكور مستوحى من الحضارة المصرية القديمة") + " — السعر: " + Number(product.p).toLocaleString("en-US") + " EGP");
+      const destination = "https://magdybnattia1.github.io/oudi-pharonic/?product=" + id + "#product-" + id;
+      const rawImage = String(product.image || "");
+      const imageUrl = /^https?:\\/\\//i.test(rawImage) ? rawImage : "https://magdybnattia1.github.io/oudi-pharonic/icon.svg";
+      const page = "<!doctype html><html lang='ar' dir='rtl'><head><meta charset='utf-8'><title>"+title+"</title><meta name='description' content='"+description+"'><meta property='og:type' content='product'><meta property='og:title' content='"+title+"'><meta property='og:description' content='"+description+"'><meta property='og:url' content='https://oudi-pharonic.mangalefi.workers.dev/p/"+id+"'><meta property='og:image' content='"+esc(imageUrl)+"'><meta name='twitter:card' content='summary_large_image'><meta http-equiv='refresh' content='0;url="+destination+"'><script>location.replace("+JSON.stringify(destination)+")</script></head><body><a href='"+destination+"'>افتح المنتج</a></body></html>";
+      return new Response(page,{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"public, max-age=60"}});
+    }
     if (request.method === "OPTIONS") return new Response(null, {status:204,headers});
     if (origin !== ORIGIN) return json({error:"Origin not allowed"},403,headers);
-    const url = new URL(request.url);
     if (url.pathname === "/api/login" && request.method === "POST") {
       let body; try { body = await request.json(); } catch { return json({error:"Invalid request"},400,headers); }
       if (typeof body.password !== "string" || body.password !== env.ADMIN_PASSWORD) return json({error:"كلمة المرور غير صحيحة"},401,headers);
