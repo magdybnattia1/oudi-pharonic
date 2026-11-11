@@ -59,7 +59,8 @@ export default {
       if (!product) return new Response("المنتج غير موجود", {status:404});
       const esc = value => String(value ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
       const title = esc(product.n + " | OUDI PHARONIC");
-      const description = esc((product.d || "ديكور مستوحى من الحضارة المصرية القديمة") + " — السعر: " + Number(product.p).toLocaleString("en-US") + " EGP");
+      const showPrices = (await env.PRODUCTS.get("show_prices")) !== "false";
+      const description = esc((product.d || "ديكور مستوحى من الحضارة المصرية القديمة") + (showPrices ? " — السعر: " + Number(product.p).toLocaleString("en-US") + " EGP" : ""));
       const destination = "https://magdybnattia1.github.io/oudi-pharonic/?product=" + id + "#product-" + id;
       const rawImage = String(product.image || "");
       const imageUrl = rawImage.startsWith("data:image/") ? "https://oudi-pharonic.mangalefi.workers.dev/media/"+id : ((rawImage.startsWith("https://") || rawImage.startsWith("http://")) ? rawImage : "https://magdybnattia1.github.io/oudi-pharonic/icon.svg");
@@ -97,6 +98,14 @@ export default {
         cursor = page.list_complete ? undefined : page.cursor;
       } while (cursor);
       return json({count},200,headers);
+    }
+    if (url.pathname === "/api/settings" && request.method === "GET") return json({showPrices:(await env.PRODUCTS.get("show_prices")) !== "false"},200,headers);
+    if (url.pathname === "/api/settings" && request.method === "POST") {
+      if (!(await tokenValid(request,env))) return json({error:"غير مصرح"},401,headers);
+      let body; try { body=await request.json(); } catch { return json({error:"بيانات غير صحيحة"},400,headers); }
+      if (typeof body.showPrices !== "boolean") return json({error:"إعداد غير صحيح"},400,headers);
+      await env.PRODUCTS.put("show_prices",String(body.showPrices));
+      return json({showPrices:body.showPrices},200,headers);
     }
     if (url.pathname === "/api/products" && request.method === "GET") return json(await readProducts(env),200,headers);
     if (url.pathname.startsWith("/api/products")) {
