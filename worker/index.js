@@ -43,7 +43,7 @@ export default {
       const product = (await readProducts(env)).find(p => Number(p.id) === mediaId);
       if (!product || !product.image) return new Response("الصورة غير موجودة", {status:404});
       const source = String(product.image);
-      const dataMatch = source.match(/^data:(image\\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/);
+      const dataMatch = source.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/);
       if (dataMatch) {
         const binary = atob(dataMatch[2]);
         const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
